@@ -6,7 +6,6 @@
   "unity": "2022.3",
   "dependencies": {
     "com.unity.textmeshpro": "3.0.6",
-    "com.unity.modules.uielements": "1.0.0",
-    "com.endel.nativewebsocket": "https://github.com/endel/NativeWebSocket.git#upm"
+    "com.unity.modules.uielements": "1.0.0"
   }
 }
