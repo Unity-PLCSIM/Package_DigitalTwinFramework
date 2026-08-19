@@ -1,0 +1,12 @@
+{
+  "name": "com.electroingenium.digitaltwinframework",
+  "version": "1.0.0",
+  "displayName": "Sistema HMI y API",
+  "description": "Paquete completo con ApiConexionManager, Pantalla HMI y Variador.",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.endel.nativewebsocket": "https://github.com/endel/NativeWebSocket.git#upm"
+  }
+}
