@@ -135,6 +135,88 @@ Cualquier script derivado está obligado a implementar el método abstracto `AlA
 
 ---
 
+## Uso de ApiInterface en Unity
+
+`ApiInterface` es un Singleton accesible desde cualquier script mediante `ApiInterface.Instance`.  
+Todas las llamadas son asíncronas: reciben un callback `onSuccess` y un `onError` opcional.
+
+### Instancias
+
+```csharp
+// Obtener instancias disponibles
+ApiInterface.Instance.GetInstances(
+    instances => { foreach (var i in instances) Debug.Log(i.ID + " - " + i.Name); },
+    err => Debug.LogError(err)
+);
+
+// Conectarse a una instancia por ID
+ApiInterface.Instance.ConnectInstance("0",
+    msg => Debug.Log("Conectado: " + msg),
+    err => Debug.LogError(err)
+);
+```
+
+### Lectura de Tags
+
+```csharp
+// Leer un tag genérico (devuelve string)
+ApiInterface.Instance.GetTag("Motor", "Bool",
+    value => Debug.Log("Motor: " + value),
+    err => Debug.LogError(err)
+);
+
+// Leer un tag Bool (devuelve bool)
+ApiInterface.Instance.GetTagBool("Motor",
+    value => Debug.Log("Motor: " + value)
+);
+
+// Leer un tag entero (devuelve int)
+ApiInterface.Instance.GetTagInt("Velocidad", "DInt (Int32)",
+    value => Debug.Log("Velocidad: " + value)
+);
+
+// Obtener todos los tags con su valor en una sola petición
+ApiInterface.Instance.GetTagsWithValues(
+    tags => { foreach (var t in tags) Debug.Log(t.Name + ": " + t.Value); },
+    err => Debug.LogError(err)
+);
+```
+
+### Escritura de Tags
+
+```csharp
+// Escribir un tag genérico
+ApiInterface.Instance.SetTag("Marcha", "Bool", "true",
+    msg => Debug.Log(msg)
+);
+
+// Escribir un Bool
+ApiInterface.Instance.SetTagBool("Marcha", true,
+    msg => Debug.Log(msg)
+);
+
+// Escribir un entero
+ApiInterface.Instance.SetTagInt("Velocidad", "DInt (Int32)", 150,
+    msg => Debug.Log(msg)
+);
+```
+
+### Polling Automático
+
+Suscribe un tag para que se lea automáticamente cada `pollInterval` segundos  
+(configurable en el Inspector de `ApiInterface`, por defecto `0.5s`):
+
+```csharp
+// Suscribir
+ApiInterface.Instance.SubscribeTag("Motor", "Bool",
+    value => Debug.Log("Motor: " + value)
+);
+
+// Cancelar suscripción
+ApiInterface.Instance.UnsubscribeTag("Motor");
+```
+
+---
 ## Notas de uso
 
 - Este paquete ha sido validado con Unity `6000.3.19f1`. No se garantiza compatibilidad con versiones anteriores.
