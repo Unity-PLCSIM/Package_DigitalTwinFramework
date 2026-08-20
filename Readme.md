@@ -8,8 +8,8 @@
 
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
-- [Cómo funciona](#cómo-funciona)
 - [Módulos](#módulos)
+  - [Api Conexion Manager](#api-conexion-manager)
   - [HMI](#hmi)
   - [Variador](#variador)
 - [Notas de uso](#notas-de-uso)
@@ -55,13 +55,35 @@ En la **Hierarchy**, añade `UI > Event System`.
 
 ---
 
-## Cómo funciona
+## Módulos
 
-!!!! añadir explicacion (conexión con instancia PLC SIM, funcionamiento in game, tablas de tags, flujo de comunicación con la API...)
+### Api Conexion Manager
+
+#### Configuraciones previas
+Antes que nada debemos configurar la conexión con la API. Dentro del inspector del objeto debemos modificar los siguientes valores
+
+![Inspector ApiConexionManager > Api Interface](img/configuracion_apiconexion.png)
+
+- **Base Url** debe de coincidir la ip de la máquina dónde lanzamos la Api y el puerto que nos indica en consola que esta API REST
+- **Ws Url** debe de coincidir la ip de la máquina dónde lanzamos la Api y el puerto que nos indica en consola que esta WebSocket
+- **Poll Interval** indica cada cuantos segundos se hará polling en caso de no usar Web Soket
+- **Ws Reconnect Interval** indica cuantos reintentos de conexion a los WebSokets se harán
+
+*Esto también se puede hacer dentro del código `ApiConexionManager/Scripts/ApiInterface.cs`*
+
+#### Conexión con instancia PLC SIM
+
+Cuando ejecutamos la aplicación automáticamente se buscan las instancias que publica la Api. Si solo hay una se conecta automáticamente a ella. 
+
+Mediante el botón `Instancias PLC` se muestra una tabla con las instancias disponibles, con botones que nos permiten conectarnos y desconectarnos de ellas. Además en la parte superior derecha hay dos botones que nos permiten poner la instancia a la que estemos conectados en RUN o STOP.
+
+#### Tablas de Tags
+
+Mediante el botón `Tags PLC` se nos muestra una tabla con todos los tags cargados en el plc. Están agrupados por Inputs, Outputs... y todos aquellos tipos de datos que hayamos creado.
+
+Todos los tags están en la tabla por defecto llamada Principal. Podemos crear otras mediante el botón `+`. Y asociar tags a estas nuevas tablas mediante un botón a la izquierda del nombre del tag. Además se permite cambiar el valor de todos los tags menos aquellos que sean de salida.
 
 ---
-
-## Módulos
 
 ### HMI
 
@@ -79,14 +101,21 @@ Añade el prefab de botones como hijo de `Panel HMI` (hijo de `HMI Root`).
 
 - Ajusta la posición en pantalla mediante las coordenadas del `Transform`.
 - En el Inspector, asigna el **tag** del PLC asociado a cada botón.
+- Cambia el texto que aparece en el botón modificando el campo de texto de su hijo `Text (TMP)` desde el Inspector.
 
 > ⚠️ **Importante:** los botones únicamente soportan toggle de variables booleanas.
 
-!!!! añadir explicacion (tipos de botones disponibles, parámetros del Inspector, ejemplos de uso...)
+### 3. Elementos de simulación
 
-**3. Prefab de objetos**
+Mediante clic derecho en `Panel HMI` (hijo de `HMI Root`) > UI (Canvas) > Image creamos lo que sería nuestro elemento de simulación. Dentro del inspector podemos sustituir la imagen por lo que queremos que se vea dentro de la pantalla.
 
-!!!! añadir explicacion
+El comportamiento de estos objetos se debe de programar dentro de un script que le asociemos. La clase de este script debe de heredar de `ObjetoHMI`. Al heredar de este script, obtenemos variables de configuración enfocadas a la lectura (`tagLectura` y `objetoAsociado`) y heredamos de su clase padre `HMIBase` las variables enfocadas a la escritura (`tagEscritura` y `tagType`). 
+
+Cualquier script derivado está obligado a implementar el método abstracto `AlActualizar(bool estado)` para definir visualmente qué ocurre cuando el valor cambia. Estos elementos pueden realizar distintos tipos de conexiones:
+
+*   **Otro Elemento -> Elemento:** Se configura asignando un objeto de la escena en la variable `objetoAsociado` dentro del inspector. En lugar de consultar al PLC, el elemento se suscribe al evento `OnEstadoCambiado` de su `objetoAsociado` durante el método `Start()`. Cuando el objeto padre cambia de estado, dispara este evento, lo que invoca el método interno del hijo y termina desencadenando su propia implementación de `AlActualizar(bool estado)`. Esto permite vincular elementos en cascada para que reaccionen a la vez al mismo evento sin duplicar conexiones al servidor.
+*   **Elemento -> Tag:** Permite enviar información hacia el PLC. Dentro del inspector se debe definir la variable de destino en `tagEscritura` y su formato en `tagType`. Para ejecutar la acción se utiliza el método protegido `Comunicar()`, el cual envía el dato a la API y realiza inmediatamente una lectura automática del tag para confirmar que la escritura ha sido exitosa y mantener la consistencia.
+*   **Tag -> Elemento:** Permite que el elemento gráfico reaccione al PLC. Se configura introduciendo el nombre de la variable en `tagLectura`. El script se suscribe a los cambios vía WebSocket y ejecuta una lectura forzada inicial para sincronizar su estado al arrancar. Cada vez que llega un nuevo valor por el WebSocket, se actualiza el estado interno y se ejecuta el método abstracto `AlActualizar(bool estado)` para reflejar el cambio en la pantalla.
 
 #### Uso en editor
 
