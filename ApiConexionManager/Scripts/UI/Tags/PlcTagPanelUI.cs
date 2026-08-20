@@ -206,7 +206,7 @@ public class PlcTagPanelUI : MonoBehaviour
         _panel.Add(_titleBar);
 
         // Ajuste inicial restando scroll y padding
-        PlcTagTableBuilder.SetPanelWidth(InitW - 55f);
+        PlcTagTableBuilder.SetPanelWidth(InitW - 75f);
 
         // Cabecera columnas
         _header = PlcTagTableBuilder.BuildHeader();
@@ -290,7 +290,7 @@ public class PlcTagPanelUI : MonoBehaviour
         float t        = Mathf.InverseLerp(PanelWMin, PanelWMax, panelW);
         float fontSize = Mathf.Round(Mathf.Lerp(FontMin, FontMax, t));
         
-        PlcTagTableBuilder.SetPanelWidth(panelW - 55f);
+        PlcTagTableBuilder.SetPanelWidth(panelW - 75f);
         PlcTagTableBuilder.SetFontSize(fontSize);
         PlcTagTableBuilder.AdjustColumnWidths(_rows);
         PlcTagTableBuilder.RefreshHeader(_header);

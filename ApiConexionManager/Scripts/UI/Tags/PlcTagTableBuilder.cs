@@ -76,7 +76,8 @@ public static class PlcTagTableBuilder
         float neededWidth = maxChars * charWidth + 16f;
         float neededProportion = neededWidth / _panelWidth;
 
-        _pwNameDynamic = Mathf.Clamp(neededProportion, 0.18f, 0.45f); 
+        // 👇 CAMBIO AQUÍ: Cambia el máximo de 0.45f a 0.28f para evitar el overflow
+        _pwNameDynamic = Mathf.Clamp(neededProportion, 0.18f, 0.28f); 
         float remaining = 1f - _pwNameDynamic - PWMenu - PWType - PWArea - PWMod;
         _pwValDynamic = Mathf.Max(0.08f, remaining);
     }
@@ -360,17 +361,25 @@ public static class PlcTagTableBuilder
             else if (rd.Type == "Bool")
             {
                 btnBool.style.display = DisplayStyle.Flex;
+                btnOk.style.display   = DisplayStyle.Flex;
                 bool active = rd.Value.Equals("true", StringComparison.OrdinalIgnoreCase) || rd.Value == "1";
                 btnBool.text                  = active ? "TRUE" : "FALSE";
                 btnBool.style.backgroundColor = active ? ColBtnTrue : ColBtnFalse;
                 btnBool.style.fontSize        = _fontSize;
-                btnBool.style.width           = W(PWMod) - 4f;
+                btnBool.style.width           = W(PWMod) - 50f;
                 btnBool.style.height          = Mathf.Max(20f, _fontSize * 1.8f);
+                btnOk.style.fontSize          = _fontSize;
+                btnOk.style.height            = Mathf.Max(20f, _fontSize * 1.8f);
 
                 if (btnBool.userData is Action oldBoolCb) btnBool.clicked -= oldBoolCb;
                 Action toggle = () => onWrite(rd.Name, active ? "false" : "true");
                 btnBool.userData = toggle;
                 btnBool.clicked += toggle;
+
+                if (btnOk.userData is Action oldOkCb) btnOk.clicked -= oldOkCb;
+                Action confirm = () => onWrite(rd.Name, active ? "false" : "true");
+                btnOk.userData = confirm;
+                btnOk.clicked += confirm;
             }
             else
             {
@@ -408,7 +417,12 @@ public static class PlcTagTableBuilder
     private static void UpdateModCellWidths(VisualElement row)
     {
         var modCell = row.Q("cell-mod");
-        if (modCell != null) modCell.style.width = W(PWMod);
+        if (modCell == null) return;
+        modCell.style.width = W(PWMod);
+        var b = modCell.Q<Button>("mod-bool");
+        if (b != null) b.style.width = W(PWMod) - 50f;
+        var t = modCell.Q<TextField>("mod-tf");
+        if (t != null) t.style.width = W(PWMod) - 50f;
     }
 
     // -- Helpers de estilo ------------------------------------------------------
